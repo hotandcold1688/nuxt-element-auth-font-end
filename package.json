@@ -1,0 +1,23 @@
+{
+  "name": "element-ui-nuxt",
+  "version": "1.0.0",
+  "description": "learn element-ui-nuxt",
+  "author": "shunl.li",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "element-ui": "^2.4.11",
+    "nuxt": "^2.0.0"
+  },
+  "devDependencies": {
+    "node-sass": "^4.12.0",
+    "nodemon": "^1.18.9",
+    "sass-loader": "^7.1.0",
+    "scss-loader": "0.0.1"
+  }
+}
