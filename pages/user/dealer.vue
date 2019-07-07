@@ -1,17 +1,24 @@
 <template>
-  <div>处理员管理</div>
+  <div class="page-container">
+    <PageNavTab />
+    <div class="inner-container">
+      <PageTitle/>
+    </div>
+  </div>
 </template>
 
 <script>
-export default {
-  asyncData() {
-    console.log("处理员管理-asyncData");
-  },
-  mounted() {
-    console.log("处理员管理-mounted");
-  }
-};
+    import PageTitle from '@/components/PageTitle.vue';
+    import PageNavTab from '@/components/PageNavTab.vue';
+
+    export default {
+        components: {
+            PageTitle,
+            PageNavTab
+        }
+    };
 </script>
 
-<style>
+<style scoped lang="scss">
+
 </style>

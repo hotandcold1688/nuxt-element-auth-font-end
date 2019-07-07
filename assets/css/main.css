@@ -6,6 +6,8 @@ body,
   margin: 0;
 }
 
+/**
+关闭动画
 .page-enter-active,
 .page-leave-active {
   transition: opacity .3s;
@@ -13,4 +15,20 @@ body,
 .page-enter,
 .page-leave-active {
   opacity: 0;
+}
+ */
+.page-container{
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  background-color: #F2F6FC;
+  position: relative;
+}
+.inner-container{
+  box-sizing: border-box;
+  padding: 10px;
+  height: 100%;
+  overflow: hidden;
+  background-color: #F2F6FC;
+  position: relative;
 }
