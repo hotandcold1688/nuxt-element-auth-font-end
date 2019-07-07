@@ -80,8 +80,13 @@ export const getters = {
             }
 
         });
-
         return result;
+    },
+    getCurrentPathTitle:(state)=>(name)=>{
+        let m = state.original_menus.find(function (menu) {
+            return menu.name === name;
+        });
+        return m?m.title:'';
     }
 };
 export const actions = {
@@ -142,7 +147,7 @@ export const actions = {
                 id: "3",
                 index: "/param",
                 title: "参数管理",
-                icon: "el-icon-tickets",
+                icon: "el-icon-setting",
                 isleaf: false,
                 name: 'param',
                 parent: '-1',
@@ -155,6 +160,33 @@ export const actions = {
                 isleaf: true,
                 name: 'param-address',
                 parent: '3',
+            },
+            {
+                id: "4",
+                index: "/order",
+                title: "订单",
+                icon: "el-icon-tickets",
+                isleaf: false,
+                name: 'order',
+                parent: '-1',
+            },
+            {
+                id: "4-1",
+                index: "/order/manage",
+                title: "订单管理",
+                icon: "",
+                isleaf: true,
+                name: 'order-manage',
+                parent: '4',
+            },
+            {
+                id: "4-2",
+                index: "/order/quality",
+                title: "质检",
+                icon: "",
+                isleaf: true,
+                name: 'order-quality',
+                parent: '4',
             }
         ];
         let groupMenu = _.groupBy(original, function (val) {

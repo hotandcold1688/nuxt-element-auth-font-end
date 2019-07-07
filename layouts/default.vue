@@ -46,6 +46,7 @@
     .el-main {
         height: 100%;
         padding: 0;
+        background-color: #F2F6FC;
     }
 
     .el-menu {

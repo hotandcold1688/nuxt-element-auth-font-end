@@ -19,9 +19,9 @@ body,
  */
 .page-container{
   box-sizing: border-box;
-  height: 100%;
-  overflow: hidden;
-  background-color: #F2F6FC;
+  /* height: 100%;
+   overflow: hidden;*/
+  /*background-color: #F2F6FC;*/
   position: relative;
 }
 .inner-container{
@@ -31,4 +31,38 @@ body,
   overflow: hidden;
   background-color: #F2F6FC;
   position: relative;
+}
+/**
+ * 维护页面的通用form和date-range的样式
+ */
+.common-form-inline {
+  padding: 24px;
+  background-color: white;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+}
+.el-cascader,
+.el-select{
+  width: 100%;
+}
+.date-range-panel{
+  left: 240px !important;
+}
+
+.common-table-tools{
+  background-color: #fff;
+  height: 50px;
+  border-bottom: 1px solid #eee;
+  padding: 10px 5px
+}
+/*.common-table-tools .el-button,*/
+/*.common-table-tools .el-input{*/
+  /*position: relative;*/
+  /*top: 10px;*/
+/*}*/
+.el-table{
+  margin-bottom: 20px;
+}
+.el-pagination{
+  text-align: right;
 }
