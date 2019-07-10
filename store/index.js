@@ -19,7 +19,13 @@ export const state = () => ({
      * false-未登录
      * true-已登录
      */
-    loginflag: false
+    loginflag: false,
+    /**
+     * 设备号
+     */
+    device_id: null,
+    access_token: null,
+    refresh_token: null
 });
 export const mutations = {
     set_menu(state, menus) {
@@ -45,19 +51,31 @@ export const mutations = {
             state.active_tab = menu;
         }
     },
-
     remove_tabs(state, menu) {
         state.tabs = _.filter(state.tabs, function (val) {
             return val.index !== menu.index;
         });
-        if(state.active_tab.index==menu.index){
-            let len=state.tabs.length;
-            state.tabs.length>0?state.active_tab=state.tabs[len-1]:null;
+        if (state.active_tab.index == menu.index) {
+            let len = state.tabs.length;
+            state.tabs.length > 0 ? state.active_tab = state.tabs[len - 1] : null;
         }
     },
     set_tab_active(state, menu) {
         state.active_tab = menu;
+    },
+    set_deviceid(state, id) {
+        state.device_id = id;
+        sessionStorage.setItem('device_id', id)
+    },
+    set_accesstoken(state, token) {
+        state.access_token = token;
+        sessionStorage.setItem('access_token', token)
+    },
+    set_refreshtoken(state, token) {
+        state.refresh_token = token;
+        sessionStorage.setItem('refresh_token', token)
     }
+
 };
 export const getters = {
     getAllPathByName: (state) => (name) => {
@@ -82,20 +100,36 @@ export const getters = {
         });
         return result;
     },
-    getCurrentPathTitle:(state)=>(name)=>{
+    getCurrentPathTitle: (state) => (name) => {
         let m = state.original_menus.find(function (menu) {
             return menu.name === name;
         });
-        return m?m.title:'';
+        return m ? m.title : '';
+    },
+    accessToken: ({access_token}) => {
+        if (access_token === null) {
+            return sessionStorage.getItem("access_token")
+        } else {
+            return access_token;
+        }
+    },
+    refreshToken: ({refresh_token}) => {
+        if (refresh_token === null) {
+            return sessionStorage.getItem("refresh_token")
+        } else {
+            return refresh_token;
+        }
+    },
+    deviceId: ({device_id}) => {
+        if (device_id === null) {
+            return sessionStorage.getItem("device_id")
+        } else {
+            return device_id;
+        }
     }
 };
 export const actions = {
-    /**
-     * logflag
-     *  true：表示做登录
-     *  flase：表示做登出
-     */
-    getMenu({state, commit}, logflag) {
+    async getMenu({commit}) {
         var menus = [];
         var original = [
             {
@@ -195,28 +229,60 @@ export const actions = {
         _.each(original, function (val) {
             let pid = val.parent;
             let id = val.id;
-            let keys=_.keys(groupMenu);
+            let keys = _.keys(groupMenu);
             //console.log('indexof',keys,id,_.indexOf(keys, id)>-1)
-            if (_.indexOf(keys, id)>-1) {
+            if (_.indexOf(keys, id) > -1) {
                 val.children = groupMenu[id];
             }
             if (pid == '-1') {
                 menus.push(val)
             }
         });
-        if (logflag) {
-            commit("set_menu", menus);
-            commit("set_original_menu", original);
-        } else {
-            commit("set_menu", []);
-            commit("set_original_menu", []);
-        }
+        commit("set_menu", menus);
+        commit("set_original_menu", original);
     },
-    logSys({state, commit, dispatch}, flag) {
-        dispatch("getMenu", flag);
-        commit("set_loginflag", flag);
-        if(!flag){
-            commit("set_tab_active", null);
-        }
-    }
+    //请求设备号
+    async getDeviceId({commit}) {
+        //登录时候，才去请求设备号
+        let response = await this.$loginApi.getDeviceId()
+        commit('set_deviceid', response.data.content)
+    },
+    //发送验证码
+    async askServerSendSmsCode({commit,dispatch},phone){
+        await dispatch('getDeviceId');
+        return this.$loginApi.sendSmsCode(phone)
+    },
+
+    //使用密码登录
+    async loginByPwd({commit,dispatch},payload){
+        let response = await this.$loginApi.loginByPassWord(payload)
+        let access_token=response.data.access_token;
+        let refresh_token=response.data.refresh_token;
+        commit('set_accesstoken',access_token);
+        commit('set_refreshtoken',refresh_token);
+        commit('set_loginflag',true);
+        await dispatch("getMenu");
+        commit("set_tab_active", null);
+    },
+    //使用短信验证码登录
+    async loginBySms({commit,dispatch},payload){
+        let response = await this.$loginApi.loginBySmsCode(payload)
+        let access_token=response.data.access_token;
+        let refresh_token=response.data.refresh_token;
+        commit('set_accesstoken',access_token);
+        commit('set_refreshtoken',refresh_token);
+        commit('set_loginflag',true);
+        await dispatch("getMenu");
+        commit("set_tab_active", null);
+    },
+
+    //退出系统
+    async logoutSys({commit}){
+        commit('set_accesstoken',null);
+        commit('set_refreshtoken',null);
+        commit('set_deviceid',null);
+        commit('set_loginflag',false);
+        commit('set_menu', []);
+        commit('set_original_menu', []);
+    },
 };

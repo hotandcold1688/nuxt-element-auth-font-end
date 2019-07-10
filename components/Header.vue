@@ -52,10 +52,8 @@
             }
         },
         methods: {
-            logoutSys() {
-                if (this.loginflag) {
-                    this.$store.dispatch("logSys", !this.loginflag);
-                }
+            async logoutSys() {
+                await this.$store.dispatch('logoutSys')
                 this.$router.push("/");
             }
         }

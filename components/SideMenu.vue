@@ -54,7 +54,7 @@
         },
         watch: {
             $route(newValue, oldValue) {
-                console.log(this.$route)
+                //console.log(this.$route)
                 /**
                  * 暂时留着这个口子，后续可能用到 begin
                  * @type {null|*}

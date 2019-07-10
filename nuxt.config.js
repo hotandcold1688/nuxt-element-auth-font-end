@@ -31,11 +31,30 @@ export default {
     /*
      ** Plugins to load before mounting the App
      */
-    plugins: ["@/plugins/element-ui"],
+    plugins: [
+        "@/plugins/element-ui",
+        '@/plugins/axios',
+        '@/plugins/repository'
+    ],
     /*
      ** Nuxt.js modules
      */
-    modules: [],
+    modules: ['@nuxtjs/axios'],
+    axios: {
+        prefix: '/api/',
+        proxy: true
+    },
+    proxy:{
+        '/api/': {
+            target:'http://119.3.20.238:8080/rubbish/',
+            /**
+             * 因为api是用来拦截代理的，api这个路径不存在，所以pathRewrite是把api给去除掉的
+             */
+            pathRewrite:{
+                '^/api/':''
+            }
+        }
+    },
     /*
      ** Build configuration
      */

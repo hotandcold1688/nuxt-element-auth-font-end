@@ -9,7 +9,7 @@ export default {
     Login
   },
   asyncData() {
-     
+
     console.log("登录页面-asyncData");
   },
   mounted() {

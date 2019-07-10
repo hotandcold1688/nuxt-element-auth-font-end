@@ -1,5 +1,7 @@
 <template>
-    <div class="login-container">
+    <div class="login-container"
+         v-loading="loading"
+         element-loading-text="系统登录中..">
         <div class="login-form">
             <!--微信登录-->
             <template v-if="login_channel==='weixin'">
@@ -36,38 +38,43 @@
                         <b>后台</b>管理系统
                     </el-col>
                 </el-row>
-                <el-form :rules="rules">
-                    <el-form-item prop="name">
+                <el-form :rules="rules" ref="ruleForm" :model="ruleForm">
+                    <el-form-item prop="user_name">
                         <el-input
                                 placeholder="请输入用户名称/手机号"
                                 suffix-icon="el-icon-mobile-phone"
-                                v-model="user_name"
+                                v-model="ruleForm.user_name"
                                 clearable
                         ></el-input>
                     </el-form-item>
                     <template v-if="login_type === 'password'">
-                        <el-form-item>
+                        <el-form-item prop="login_key">
                             <el-input
                                     placeholder="请输入密码"
                                     suffix-icon="el-icon-lock"
                                     type="password"
-                                    v-model="login_key"
+                                    v-model="ruleForm.login_key"
                                     show-password
                             ></el-input>
                         </el-form-item>
                     </template>
                     <template v-else>
-                        <el-form-item>
+                        <el-form-item prop="login_key">
                             <el-row :gutter="20">
-                                <el-col :span="16">
+                                <el-col :span="15">
                                     <el-input
                                             placeholder="请输入短信验证码"
                                             suffix-icon="el-icon-chat-round"
-                                            v-model="login_key"
+                                            v-model="ruleForm.login_key"
                                     ></el-input>
                                 </el-col>
-                                <el-col :span="7">
-                                    <el-button type="info" plain size="small">发送验证码</el-button>
+                                <el-col :span="5">
+                                    <el-button type="info" plain size="small" @click.native="sendSmsCode"
+                                               :loading="smsBtnLoading">发送验证码
+                                    </el-button>
+                                </el-col>
+                                <el-col :span="4" style="text-align: right;color: #F56C6C;font-size: 12px">
+                                    {{smsCodeLeftTime>30?'':smsCodeLeftTime<0?'重新发送':smsCodeLeftTime+'秒'}}
                                 </el-col>
                             </el-row>
                         </el-form-item>
@@ -112,10 +119,33 @@
 </template>
 
 <script>
-    import {mapActions} from "vuex";
-
     export default {
         data() {
+            var validatePhone = (rule, value, callback) => {
+                if (value === '' || typeof value === 'undefined') {
+                    callback(new Error('手机号码不能为空'));
+                } else {
+                    if (this.login_type === 'sms') {
+                        //校验是否是正确的手机号
+                        var reg = /^1[3456789]\d{9}$/;
+                        if (!reg.test(value)) {
+                            callback(new Error('请输入有效的手机号码'));
+                        }
+                    }
+                    callback();
+                }
+            };
+            var validatePassWord = (rule, value, callback) => {
+                if (value === '' || typeof value === 'undefined') {
+                    if (this.login_type === 'sms') {
+                        callback(new Error('短信验证码不能为空'));
+                    } else {
+                        callback(new Error('登录密码不能为空'));
+                    }
+                } else {
+                    callback();
+                }
+            };
             return {
                 /**
                  * 登录渠道
@@ -131,13 +161,27 @@
                  *  sms-短信的登录方式
                  */
                 login_type: "password",
-                //用户名
-                user_name: "",
-                //登录的key值
-                login_key: "",
+                ruleForm: {
+                    //用户名
+                    user_name: "",
+                    //登录的key值
+                    login_key: "",
+                },
                 rules: {
-                    name: [{}]
-                }
+                    user_name: [
+                        {validator: validatePhone, trigger: 'blur'},
+                        {validator: validatePhone, trigger: 'change'}
+                    ],
+                    login_key: [
+                        {validator: validatePassWord, trigger: 'blur'}
+                    ]
+                },
+                loading: false,
+                smsBtnLoading: false,
+                /**
+                 * 短信验证码剩余时间
+                 */
+                smsCodeLeftTime: 31
             };
         },
         methods: {
@@ -156,24 +200,78 @@
             /**
              * 登录系统
              */
-            loginSys() {
-                this.$store.dispatch("logSys", true);
-                this.$router.push("/welcome");
+            async loginSys() {
+                this.$refs['ruleForm'].validate((valid) => {
+                    if (valid) {
+                        this._fetchLogin();
+                    } else {
+                        return false;
+                    }
+                });
 
+            },
+            async _fetchLogin() {
+                this.loading = true;
+                switch (this.login_channel) {
+                    case 'normal':
+                        if (this.login_type === 'password') {
+                            //密码登录
+                            await this.$store.dispatch("loginByPwd", {
+                                username: this.ruleForm.user_name,
+                                password: this.ruleForm.login_key
+                            });
+                        } else {
+                            //sms
+                            await this.$store.dispatch("loginBySms", {
+                                smscode: this.ruleForm.user_name,
+                                mobile: this.ruleForm.login_key
+                            });
+                        }
+                        break;
+                    case 'weixin':
+                        break;
+                    case 'weibo':
+                        break;
+                    case 'qq':
+                        break;
+                    default:
+                        break;
+                }
+                this.$router.push("/welcome");
+                this.loading = false;
+            },
+            /**
+             * 请求发送短信验证码
+             * @return {Promise<void>}
+             */
+            sendSmsCode() {
+                this.$refs['ruleForm'].validateField('user_name', (valid) => {
+                    if (valid === '') {
+                        this.$refs['ruleForm'].clearValidate('login_key');
+                        this._fetchSmsCode();
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            async _fetchSmsCode() {
+                this.smsBtnLoading = true;
+                await this.$store.dispatch("askServerSendSmsCode", this.ruleForm.user_name);
+                this.smsBtnLoading = false;
             }
         },
         created() {
-            let self=this;
-            document.onkeydown=function (e) {
+            let self = this;
+            document.onkeydown = function (e) {
                 let key = window.event.keyCode;
-                if(key ===13){
+                if (key === 13) {
                     self.loginSys();
                 }
             }
         },
-        destroyed(){
+        destroyed() {
             //销毁键盘事件
-            document.onkeydown=null;
+            document.onkeydown = null;
         }
     };
 </script>
