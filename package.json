@@ -13,7 +13,7 @@
   "dependencies": {
     "echarts": "^4.2.1",
     "element-ui": "^2.4.11",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "nuxt": "^2.0.0",
     "vue-echarts": "^4.0.3"
   },
